@@ -12,7 +12,8 @@
   located in ./pages  (where '.' is the directory from which this
   program is run).
 """
-
+import os.path
+from os import path
 import config    # Configure from .ini files and command line
 import logging   # Better than print statements
 logging.basicConfig(format='%(levelname)s:%(message)s',
@@ -68,6 +69,11 @@ CAT = """
    =(   )=
 """
 
+DOG = """
+     ^ ^
+    ( 0 )
+"""
+
 # HTTP response codes, as the strings we will actually send.
 # See:  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # or    http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
@@ -89,10 +95,24 @@ def respond(sock):
     log.info("--- Received request ----")
     log.info("Request was {}\n***\n".format(request))
 
+    test1 = os.path.exists('/Users/austinmontgomery/Documents/GitHub/project-1/pages/')
+    test2 = False
+    for filename in os.listdir('/Users/austinmontgomery/Documents/GitHub/project-1/pages'):
+        if '..' or '~' in filename:
+            test2 = True
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        if test1 & test2 == True:
+            transmit(STATUS_OK, sock)
+            for filename in os.listdir('/Users/austinmontgomery/Documents/GitHub/project-1/pages'):
+                f = open(os.path.join('/Users/austinmontgomery/Documents/GitHub/project-1/pages', filename), 'r')
+                g = f.read()
+                transmit(g, sock)
+        else:
+            if test1 == True:
+                transmit(STATUS_NOT_FOUND, sock)
+            elif test2 == True:
+                transmit(STATUS_NOT_IMPLEMENTED, sock)
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
