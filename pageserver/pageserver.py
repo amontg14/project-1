@@ -95,24 +95,27 @@ def respond(sock):
     log.info("--- Received request ----")
     log.info("Request was {}\n***\n".format(request))
 
-    test1 = os.path.exists('/Users/austinmontgomery/Documents/GitHub/project-1/pages/')
-    test2 = False
-    for filename in os.listdir('/Users/austinmontgomery/Documents/GitHub/project-1/pages'):
-        if '..' or '~' in filename:
-            test2 = True
+
+    options = get_options()
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        if test1 & test2 == True:
+        test1 = os.path.isfile(options.DOCROOT + parts[1])
+        test2 = True
+        if '~' in str(parts[1]):
+            test2 = False
+        if '..' in str(parts[1]):
+            test2 = False
+        if test1 and test2 == True:
             transmit(STATUS_OK, sock)
-            for filename in os.listdir('/Users/austinmontgomery/Documents/GitHub/project-1/pages'):
-                f = open(os.path.join('/Users/austinmontgomery/Documents/GitHub/project-1/pages', filename), 'r')
-                g = f.read()
-                transmit(g, sock)
+            f = open(options.DOCROOT + parts[1])
+            g = f.read()
+            transmit(g, sock)
         else:
-            if test1 == True:
+            if test2 == False:
+                transmit(STATUS_FORBIDDEN, sock)
+            else:
                 transmit(STATUS_NOT_FOUND, sock)
-            elif test2 == True:
-                transmit(STATUS_NOT_IMPLEMENTED, sock)
+
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
